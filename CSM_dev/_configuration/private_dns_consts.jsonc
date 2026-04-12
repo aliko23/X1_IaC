@@ -1,0 +1,31 @@
+{
+    "keyvault": {
+        "dnsZoneName": "privatelink.vaultcore.azure.net",
+        "subResource": "vault"
+    },
+    "staticwebsite": {
+        "dnsZoneName": "privatelink.azurestaticapps.net",
+        "subResource": "staticSites"
+    },
+    "storage": {
+        "dnsZoneName": "privatelink.blob.core.windows.net",
+        "subResource": "blob"
+    },
+    "cosmosdb": {
+        "dnsZoneName": "privatelink.documents.azure.us",
+        "subResource": "SQL"
+    },
+    "functions": {
+        "dnsZoneName": "privatelink.azurewebsites.net",
+        "subResource": "sites"
+    },
+    "searchAi": {
+        "dnsZoneName": "privatelink.search.azure.us",
+        "subResource": "searchService"
+    },
+    "serviceBus": {
+        "dnsZoneName": "privatelink.servicebus.windows.net",
+        "subResource": "namespace"
+    }
+
+}

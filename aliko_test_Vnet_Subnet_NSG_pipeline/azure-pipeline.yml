@@ -1,0 +1,18 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'sn-backup-01'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az deployment group create \
+        --resource-group my-rg \
+        --template-file ./main.bicep \
+        --parameters @./main.bicepparam
+    displayName: 'Deploy Bicep Modules'

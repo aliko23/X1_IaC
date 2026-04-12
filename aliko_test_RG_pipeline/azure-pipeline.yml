@@ -1,0 +1,25 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  resourceGroupName: 'rg-test-prod-gwc-02'
+  location: 'Germany West Central'
+  templateFile: './resourceGroup.bicep'
+  parameterFile: './resourceGroup.bicepparam'
+
+steps:
+- task: AzureResourceManagerTemplateDeployment@3
+  inputs:
+    deploymentScope: 'Subscription'
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: '$(resourceGroupName)'
+    location: '$(location)'
+    templateLocation: 'Linked artifact'
+    csmFile: '$(templateFile)'
+    csmParametersFile: '$(parameterFile)'
+    deploymentMode: 'Incremental'
+    deploymentName: 'ResourceGroupDeployment'
+    connectedServiceName: 'sn-backup-01'

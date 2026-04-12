@@ -1,0 +1,198 @@
+{
+    "qa": {
+        "apim": {
+            "sku": "Developer",
+            "capacity": 1
+        },
+        "searchAi": {
+            "sku": "basic"
+        },
+        // "appServicePlan": {
+        //     "sku": {
+        //         "name": "",
+        //         "tier": ""
+        //     },
+        //     "properties": {
+        //         "reserved": true
+        //     }
+        // },
+        "cosmosDb": {
+            "accountProperties": {
+                "locations": [
+                    {
+                        "locationName": "germanywestcentral",
+                        "failoverPriority": 0,
+                        "isZoneRedundant": false
+                    }
+                ],
+                "enableAutomaticFailover": false
+            },
+            "containers": [
+                {
+                    "name": "container1",
+                    "partitionKeyPath": "/partitionKey",
+                    "throughput": 400,
+                    "autoscaleSettingsMaxThroughput": 10000
+                },
+                {
+                    "name": "container2",
+                    "partitionKeyPath": "/partitionKey",
+                    "throughput": 400,
+                    "autoscaleSettingsMaxThroughput": 10000
+                }
+            ]
+        },
+        "functionApp": {
+            "sku": "EP1"
+        },
+        // "keyVault": {
+        //     "sku": {
+        //         "family": "A",
+        //         "name": "standard"
+        //     },
+        //     "softDeleteRetentionInDays": 7,
+        //     "enablePurgeProtection": true,
+        //     "enableSoftDelete": true,
+        //     "enabledForDeployment": true
+        // },
+        // "logAnalytics": {
+        //     "sku": {
+        //         "name": "PerGB2018"
+        //     },
+        //     "retentionInDays": 90
+        // },
+        "serviceBus": {
+            "namespace": {
+                "sku": "Premium",
+                "capacity": 1
+            },
+            "queues": [
+                {
+                    "name": "queue1",
+                    "maxSizeInMegabytes": 1024,
+                    "requiresDuplicateDetection": true,
+                    "requiresSession": false,
+                    "defaultMessageTimeToLive": "PT1H",
+                    "lockDuration": "PT5M",
+                    "maxDeliveryCount": 10
+                },
+                {
+                    "name": "queue2",
+                    "maxSizeInMegabytes": 1024,
+                    "requiresDuplicateDetection": true,
+                    "requiresSession": false,
+                    "defaultMessageTimeToLive": "PT1H",
+                    "lockDuration": "PT5M",
+                    "maxDeliveryCount": 10
+                }
+            ]            
+        },
+        "staticWebApp": {
+            // Free is not working
+            "sku": "Standard"
+        },
+        "jumpbox": {
+            "vmSize": "Standard_B2ms",
+            "adminUsername": "adminuser",
+            "adminPassword": "adminP@ssword123$"
+        }        
+    },
+    "prod": {
+        "apim": {
+            "sku": "Premium",
+            "capacity": 1
+        },
+        "searchAi": {
+            "sku": "standard"
+        },
+        // "appServicePlan": {
+        //     "sku": {
+        //         "name": "",
+        //         "tier": ""
+        //     },
+        //     "properties": {
+        //         "reserved": true
+        //  }   
+        // },
+        "cosmosDb": {
+            "accountProperties": {
+                "locations": [
+                    {
+                        "locationName": "germanywestcentral",
+                        "failoverPriority": 0,
+                        "isZoneRedundant": false
+                    }
+                ],
+                "enableAutomaticFailover": false
+            },
+            "containers": [
+                {
+                    "name": "container1",
+                    "partitionKeyPath": "/partitionKey",
+                    "throughput": 400,
+                    "autoscaleSettingsMaxThroughput": 10000
+                },
+                {
+                    "name": "container2",
+                    "partitionKeyPath": "/partitionKey",
+                    "throughput": 400,
+                    "autoscaleSettingsMaxThroughput": 10000
+                }
+            ]
+        },
+        "functionApp": {
+            "sku": "EP1"
+        },
+        // },
+        // "keyVault": {
+        //     "sku": {
+        //         "family": "A",
+        //         "name": "standard"
+        //     },
+        //     "softDeleteRetentionInDays": 7,
+        //     "enablePurgeProtection": true,
+        //     "enableSoftDelete": true,
+        //     "enabledForDeployment": true
+        // },
+        // "logAnalytics": {
+        //     "sku": {
+        //         "name": "PerGB2018"
+        //     },
+        //     "retentionInDays": 90
+        // },
+        "serviceBus": {
+            "namespace": {
+                "sku": "Premium",
+                "capacity": 1
+            },
+            "queues": [
+                {
+                    "name": "queue1",
+                    "maxSizeInMegabytes": 1024,
+                    "requiresDuplicateDetection": true,
+                    "requiresSession": false,
+                    "defaultMessageTimeToLive": "PT1H",
+                    "lockDuration": "PT5M",
+                    "maxDeliveryCount": 10
+                },
+                {
+                    "name": "queue2",
+                    "maxSizeInMegabytes": 1024,
+                    "requiresDuplicateDetection": true,
+                    "requiresSession": false,
+                    "defaultMessageTimeToLive": "PT1H",
+                    "lockDuration": "PT5M",
+                    "maxDeliveryCount": 10
+                }
+            ]
+        },
+        "staticWebApp": {
+            "sku": "Standard"
+        },
+        "jumpbox": {
+            "vmSize": "Standard_B2ms",                     
+            "adminUsername": "adminuser",
+            "adminPassword": "adminP@ssword123$"
+        }
+    }
+}

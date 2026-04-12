@@ -1,0 +1,146 @@
+metadata name = 'Static Web Apps'
+metadata description = 'This module deploys a Static Web App.'
+
+@description('Required. The name of the static site.')
+@minLength(1)
+@maxLength(40)
+param name string
+
+@allowed([
+  'Free'
+  'Standard'
+])
+@description('Optional. The service tier and name of the resource SKU.')
+param sku string = 'Free'
+
+@description('Optional. False if config file is locked for this static web app; otherwise, true.')
+param allowConfigFileUpdates bool = true
+
+@description('Optional. Location for all resources.')
+param location string = 'westeurope'
+
+@description('Optional. State indicating whether staging environments are allowed or not allowed for a static web app.')
+@allowed([
+  'Enabled'
+  'Disabled'
+])
+param stagingEnvironmentPolicy string = 'Enabled'
+
+@allowed([
+  'Disabled'
+  'Disabling'
+  'Enabled'
+  'Enabling'
+])
+@description('Optional. State indicating the status of the enterprise grade CDN serving traffic to the static web app.')
+param enterpriseGradeCdnStatus string = 'Disabled'
+
+@description('Optional. Build properties for the static site.')
+param buildProperties object?
+
+@description('Optional. Template Options for the static site.')
+param templateProperties object?
+
+@description('Optional. The provider that submitted the last deployment to the primary environment of the static site.')
+param provider string = 'None'
+
+@secure()
+@description('Optional. The Personal Access Token for accessing the GitHub repository.')
+param repositoryToken string?
+
+@description('Optional. The name of the GitHub repository.')
+param repositoryUrl string?
+
+@description('Optional. The branch name of the GitHub repository.')
+param branch string?
+
+@description('If the keyvault has private endpoints enabled.')
+param hasPrivateEndpoint bool
+
+@description('Optional. Tags of the resource.')
+param tags object?
+
+@description('Optional. Static site app settings.')
+param appSettings object = {}
+
+@description('Optional. Function app settings.')
+param functionAppSettings object = {}
+
+@description('Optional, default is true. Enables system assigned managed identity on the resource.')
+param systemAssignedIdentity bool = true
+
+@description('Conditional. The ID(s) to assign to the resource. Required if a user assigned identity is used for encryption.')
+param userAssignedIdentities object = {}
+
+
+@description('Optional. Whether or not public network access is allowed for this resource. For security reasons it should be disabled. If not specified, it will be disabled by default if private endpoints are set.')
+@allowed([
+  ''
+  'Enabled'
+  'Disabled'
+])
+param publicNetworkAccess string = ''
+
+
+var identityType = systemAssignedIdentity ? (!empty(userAssignedIdentities) ? 'SystemAssigned,UserAssigned' : 'SystemAssigned') : (!empty(userAssignedIdentities) ? 'UserAssigned' : 'None')
+
+var identity = identityType != 'None' ? {
+  type: identityType
+  userAssignedIdentities: !empty(userAssignedIdentities) ? userAssignedIdentities : null
+} : null
+
+resource staticSite 'Microsoft.Web/staticSites@2024-04-01' = {
+  name: name
+  location: location
+  tags: tags
+#disable-next-line BCP036
+  identity: identity
+  sku: {
+    name: sku
+    tier: sku
+  }
+  properties: {
+    allowConfigFileUpdates: allowConfigFileUpdates
+    stagingEnvironmentPolicy: stagingEnvironmentPolicy
+    enterpriseGradeCdnStatus: enterpriseGradeCdnStatus
+    provider: !empty(provider) ? provider : 'None'
+    branch: branch
+    buildProperties: buildProperties
+    repositoryToken: repositoryToken
+    repositoryUrl: repositoryUrl
+    templateProperties: templateProperties
+    publicNetworkAccess: !empty(publicNetworkAccess) ? any(publicNetworkAccess) : (hasPrivateEndpoint ? 'Disabled' : null)
+  }
+}
+
+resource staticSite_appSettings 'Microsoft.Web/staticSites/config@2022-03-01' = if (!empty(appSettings)) {
+  #disable-next-line BCP225 // Disables incorrect error that `name` cannot be determined at compile time.
+  name:  'appsettings'
+  parent: staticSite
+  properties: appSettings
+}
+
+resource staticSite_functionAppSettings 'Microsoft.Web/staticSites/config@2022-03-01' = if (!empty(functionAppSettings)) {
+  #disable-next-line BCP225 // Disables incorrect error that `name` cannot be determined at compile time.
+  name:  'functionappsettings'
+  parent: staticSite
+  properties: functionAppSettings
+}
+
+@description('The name of the static site.')
+output name string = staticSite.name
+
+@description('The resource ID of the static site.')
+output resourceId string = staticSite.id
+
+@description('The resource group the static site was deployed into.')
+output resourceGroupName string = resourceGroup().name
+
+@description('The principal ID of the system assigned identity.')
+output systemAssignedMIPrincipalId string? = staticSite.?identity.?principalId
+
+@description('The location the resource was deployed into.')
+output location string = staticSite.location
+
+@description('The default autogenerated hostname for the static site.')
+output defaultHostname string = staticSite.properties.defaultHostname

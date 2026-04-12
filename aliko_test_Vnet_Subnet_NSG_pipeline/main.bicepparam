@@ -1,0 +1,6 @@
+param location = 'Germany West Central'
+param vnetName = 'my-vnet'
+param addressPrefix = '10.0.0.0/16'
+param subnetName = 'my-subnet'
+param subnetPrefix = '10.0.1.0/24'
+param nsgName = 'my-nsg'

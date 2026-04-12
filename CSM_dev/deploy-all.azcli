@@ -1,0 +1,9 @@
+LOCATION=germanywestcentral
+DEPLOYMENT_NAME=apim-deployment-04
+
+
+az deployment sub create \
+       --template-file main.bicep \
+       --location $LOCATION \
+       --name $DEPLOYMENT_NAME \
+       --parameters main.bicepparam

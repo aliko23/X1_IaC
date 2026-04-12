@@ -1,0 +1,12 @@
+{
+    "germanywestcentral": {
+        "displayName": "Germany West Central",
+        "shortName": "gwc",
+        "region_name" : "germanywestcentral"
+    },
+    "centralus": {
+        "displayName": "Central US",
+        "shortName": "cus",
+        "region_name" : "centralus"
+    }
+}
