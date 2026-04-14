@@ -1,0 +1,1294 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.34.44.8038",
+      "templateHash": "14533890067134183483"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "germanywestcentral"
+    },
+    "environment": {
+      "type": "string",
+      "defaultValue": "prod"
+    },
+    "resourceGroupName": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().name]"
+    },
+    "vmName": {
+      "type": "string",
+      "defaultValue": "vmtestprod001"
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_B2as_v2"
+    },
+    "vmAdminUsername": {
+      "type": "string"
+    },
+    "vmAdminPassword": {
+      "type": "securestring"
+    },
+    "computerName": {
+      "type": "string",
+      "defaultValue": "vmtestprod001"
+    },
+    "vnetName": {
+      "type": "string",
+      "defaultValue": "hedno-vnet-test-prod-gwc-02"
+    },
+    "vnetAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.19.90.224/28"
+    },
+    "subnetName": {
+      "type": "string",
+      "defaultValue": "snet-test-prod-gwc-001"
+    },
+    "subnetAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.19.90.224/28"
+    },
+    "nicName": {
+      "type": "string",
+      "defaultValue": "vmtestprod001196_z1"
+    },
+    "nsgName": {
+      "type": "string",
+      "defaultValue": "nsg-test-prod-gwc-001"
+    },
+    "routeTableName": {
+      "type": "string",
+      "defaultValue": "rt-test-prod-gwc-02"
+    },
+    "diskName": {
+      "type": "string",
+      "defaultValue": "vmtestprod001_OsDisk_1_c79e16e61dfb47a380bb671e12dcd216"
+    },
+    "diskSizeGB": {
+      "type": "int",
+      "defaultValue": 127
+    },
+    "dnsServers": {
+      "type": "array",
+      "defaultValue": [
+        "10.19.66.4",
+        "10.19.66.5"
+      ]
+    },
+    "dcrName": {
+      "type": "string",
+      "defaultValue": "MSVMI-ama-vmi-default-dcr"
+    },
+    "lawWorkspaceResourceId": {
+      "type": "string",
+      "defaultValue": "/subscriptions/f277b017-a5e1-41b7-b016-3ce52c11a68f/resourcegroups/hedno-mgmt-gwc/providers/microsoft.operationalinsights/workspaces/hedno-monitoring-law-gwc"
+    },
+    "lawWorkspaceId": {
+      "type": "string",
+      "defaultValue": "a72a9cdf-95c0-4598-9036-8b1498bfedb0"
+    },
+    "routeTableTags": {
+      "type": "object",
+      "defaultValue": {
+        "ApplicationName": "Expressroute",
+        "Requestor": "t.chatzithomaoglou@deddie.gr"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "nsg-deployment",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "nsgName": {
+            "value": "[parameters('nsgName')]"
+          },
+          "environment": {
+            "value": "[parameters('environment')]"
+          },
+          "securityRules": {
+            "value": []
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.34.44.8038",
+              "templateHash": "18383435063650389618"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "nsgName": {
+              "type": "string"
+            },
+            "environment": {
+              "type": "string",
+              "defaultValue": "prod"
+            },
+            "securityRules": {
+              "type": "array",
+              "defaultValue": []
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/networkSecurityGroups",
+              "apiVersion": "2023-11-01",
+              "name": "[parameters('nsgName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "securityRules": "[parameters('securityRules')]"
+              },
+              "tags": {
+                "environment": "[parameters('environment')]"
+              }
+            }
+          ],
+          "outputs": {
+            "nsgId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
+            },
+            "nsgName": {
+              "type": "string",
+              "value": "[parameters('nsgName')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "routetable-deployment",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "routeTableName": {
+            "value": "[parameters('routeTableName')]"
+          },
+          "disableBgpRoutePropagation": {
+            "value": false
+          },
+          "environment": {
+            "value": "[parameters('environment')]"
+          },
+          "routes": {
+            "value": [
+              {
+                "name": "ToInternet",
+                "properties": {
+                  "addressPrefix": "0.0.0.0/0",
+                  "nextHopType": "VirtualAppliance",
+                  "nextHopIpAddress": "10.19.64.132",
+                  "hasBgpOverride": false
+                }
+              }
+            ]
+          },
+          "customTags": {
+            "value": "[parameters('routeTableTags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.34.44.8038",
+              "templateHash": "18003548674641655874"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "routeTableName": {
+              "type": "string"
+            },
+            "routes": {
+              "type": "array",
+              "defaultValue": []
+            },
+            "disableBgpRoutePropagation": {
+              "type": "bool",
+              "defaultValue": false
+            },
+            "environment": {
+              "type": "string",
+              "defaultValue": "prod"
+            },
+            "customTags": {
+              "type": "object",
+              "defaultValue": {}
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/routeTables",
+              "apiVersion": "2023-11-01",
+              "name": "[parameters('routeTableName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "disableBgpRoutePropagation": "[parameters('disableBgpRoutePropagation')]",
+                "routes": "[parameters('routes')]"
+              },
+              "tags": "[union(createObject('environment', parameters('environment')), parameters('customTags'))]"
+            }
+          ],
+          "outputs": {
+            "routeTableId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/routeTables', parameters('routeTableName'))]"
+            },
+            "routeTableName": {
+              "type": "string",
+              "value": "[parameters('routeTableName')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "vnet-deployment",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "vnetName": {
+            "value": "[parameters('vnetName')]"
+          },
+          "addressPrefix": {
+            "value": "[parameters('vnetAddressPrefix')]"
+          },
+          "subnetName": {
+            "value": "[parameters('subnetName')]"
+          },
+          "subnetAddressPrefix": {
+            "value": "[parameters('subnetAddressPrefix')]"
+          },
+          "dnsServers": {
+            "value": "[parameters('dnsServers')]"
+          },
+          "nsgId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'nsg-deployment'), '2022-09-01').outputs.nsgId.value]"
+          },
+          "routeTableId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'routetable-deployment'), '2022-09-01').outputs.routeTableId.value]"
+          },
+          "environment": {
+            "value": "[parameters('environment')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.34.44.8038",
+              "templateHash": "9871250686287347769"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "vnetName": {
+              "type": "string"
+            },
+            "addressPrefix": {
+              "type": "string"
+            },
+            "dnsServers": {
+              "type": "array"
+            },
+            "nsgId": {
+              "type": "string"
+            },
+            "routeTableId": {
+              "type": "string"
+            },
+            "environment": {
+              "type": "string",
+              "defaultValue": "prod"
+            },
+            "subnetName": {
+              "type": "string",
+              "defaultValue": "snet-test-prod-gwc-001"
+            },
+            "subnetAddressPrefix": {
+              "type": "string"
+            },
+            "vnetPeeringConfigs": {
+              "type": "array",
+              "defaultValue": [
+                {
+                  "peeringName": "hedno-vnet-test-prod-gwc-02-to-hedno-hub-germanywest",
+                  "remoteVnetId": "/subscriptions/95eff073-0a30-4add-b30b-fade9c017ea6/resourceGroups/hedno-vnethub-germanywestcentral-001/providers/Microsoft.Network/virtualNetworks/hedno-hub-germanywest",
+                  "allowForwardedTraffic": true,
+                  "allowGatewayTransit": false,
+                  "allowVirtualNetworkAccess": true,
+                  "useRemoteGateways": false
+                },
+                {
+                  "peeringName": "vnetpeer-hedno-vnet-test-prod-gwc-02-to-vnet-ipnet-hub-gwc-01",
+                  "remoteVnetId": "/subscriptions/95eff073-0a30-4add-b30b-fade9c017ea6/resourceGroups/rg-ipnet-hub-gwc-01/providers/Microsoft.Network/virtualNetworks/vnet-ipnet-hub-gwc-01",
+                  "allowForwardedTraffic": true,
+                  "allowGatewayTransit": false,
+                  "allowVirtualNetworkAccess": true,
+                  "useRemoteGateways": true
+                }
+              ]
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/virtualNetworks",
+              "apiVersion": "2023-11-01",
+              "name": "[parameters('vnetName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "addressSpace": {
+                  "addressPrefixes": [
+                    "[parameters('addressPrefix')]"
+                  ]
+                },
+                "dhcpOptions": {
+                  "dnsServers": "[parameters('dnsServers')]"
+                },
+                "subnets": [
+                  {
+                    "name": "[parameters('subnetName')]",
+                    "properties": {
+                      "addressPrefix": "[parameters('subnetAddressPrefix')]",
+                      "networkSecurityGroup": {
+                        "id": "[parameters('nsgId')]"
+                      },
+                      "routeTable": {
+                        "id": "[parameters('routeTableId')]"
+                      },
+                      "privateEndpointNetworkPolicies": "Disabled",
+                      "privateLinkServiceNetworkPolicies": "Enabled"
+                    }
+                  }
+                ],
+                "enableDdosProtection": false,
+                "encryption": {
+                  "enabled": false,
+                  "enforcement": "AllowUnencrypted"
+                }
+              },
+              "tags": {
+                "environment": "[parameters('environment')]"
+              }
+            },
+            {
+              "copy": {
+                "name": "vnetPeerings",
+                "count": "[length(parameters('vnetPeeringConfigs'))]"
+              },
+              "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+              "apiVersion": "2023-11-01",
+              "name": "[format('{0}/{1}', parameters('vnetName'), parameters('vnetPeeringConfigs')[copyIndex()].peeringName)]",
+              "properties": {
+                "allowForwardedTraffic": "[parameters('vnetPeeringConfigs')[copyIndex()].allowForwardedTraffic]",
+                "allowGatewayTransit": "[parameters('vnetPeeringConfigs')[copyIndex()].allowGatewayTransit]",
+                "allowVirtualNetworkAccess": "[parameters('vnetPeeringConfigs')[copyIndex()].allowVirtualNetworkAccess]",
+                "doNotVerifyRemoteGateways": false,
+                "peerCompleteVnets": true,
+                "remoteVirtualNetwork": {
+                  "id": "[parameters('vnetPeeringConfigs')[copyIndex()].remoteVnetId]"
+                },
+                "useRemoteGateways": "[parameters('vnetPeeringConfigs')[copyIndex()].useRemoteGateways]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "vnetId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
+            },
+            "vnetName": {
+              "type": "string",
+              "value": "[parameters('vnetName')]"
+            },
+            "subnetId": {
+              "type": "string",
+              "value": "[format('{0}/subnets/{1}', resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName')), parameters('subnetName'))]"
+            },
+            "subnetName": {
+              "type": "string",
+              "value": "[parameters('subnetName')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'nsg-deployment')]",
+        "[resourceId('Microsoft.Resources/deployments', 'routetable-deployment')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "disk-deployment",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "diskName": {
+            "value": "[parameters('diskName')]"
+          },
+          "diskSizeGB": {
+            "value": "[parameters('diskSizeGB')]"
+          },
+          "osType": {
+            "value": "Windows"
+          },
+          "skuName": {
+            "value": "StandardSSD_LRS"
+          },
+          "zones": {
+            "value": [
+              "1"
+            ]
+          },
+          "environment": {
+            "value": "[parameters('environment')]"
+          },
+          "imagePublisher": {
+            "value": "MicrosoftWindowsServer"
+          },
+          "imageOffer": {
+            "value": "WindowsServer"
+          },
+          "imageSku": {
+            "value": "2022-datacenter-azure-edition"
+          },
+          "imageVersion": {
+            "value": "latest"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.34.44.8038",
+              "templateHash": "15459385256887444349"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "diskName": {
+              "type": "string"
+            },
+            "diskSizeGB": {
+              "type": "int",
+              "defaultValue": 127
+            },
+            "osType": {
+              "type": "string",
+              "defaultValue": "Windows"
+            },
+            "skuName": {
+              "type": "string",
+              "defaultValue": "StandardSSD_LRS"
+            },
+            "zones": {
+              "type": "array",
+              "defaultValue": [
+                "1"
+              ]
+            },
+            "environment": {
+              "type": "string",
+              "defaultValue": "prod"
+            },
+            "imagePublisher": {
+              "type": "string",
+              "defaultValue": "MicrosoftWindowsServer"
+            },
+            "imageOffer": {
+              "type": "string",
+              "defaultValue": "WindowsServer"
+            },
+            "imageSku": {
+              "type": "string",
+              "defaultValue": "2022-datacenter-azure-edition"
+            },
+            "imageVersion": {
+              "type": "string",
+              "defaultValue": "latest"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Compute/disks",
+              "apiVersion": "2023-10-02",
+              "name": "[parameters('diskName')]",
+              "location": "[parameters('location')]",
+              "zones": "[parameters('zones')]",
+              "sku": {
+                "name": "[parameters('skuName')]"
+              },
+              "properties": {
+                "osType": "[parameters('osType')]",
+                "creationData": {
+                  "createOption": "FromImage",
+                  "imageReference": {
+                    "id": "[format('/Subscriptions/{0}/Providers/Microsoft.Compute/Locations/{1}/Publishers/{2}/ArtifactTypes/VMImage/Offers/{3}/Skus/{4}/Versions/{5}', subscription().subscriptionId, parameters('location'), parameters('imagePublisher'), parameters('imageOffer'), parameters('imageSku'), parameters('imageVersion'))]"
+                  }
+                },
+                "diskSizeGB": "[parameters('diskSizeGB')]",
+                "encryption": {
+                  "type": "EncryptionAtRestWithPlatformKey"
+                },
+                "networkAccessPolicy": "AllowAll",
+                "publicNetworkAccess": "Enabled",
+                "hyperVGeneration": "V2"
+              },
+              "tags": {
+                "environment": "[parameters('environment')]"
+              }
+            }
+          ],
+          "outputs": {
+            "diskId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Compute/disks', parameters('diskName'))]"
+            },
+            "diskName": {
+              "type": "string",
+              "value": "[parameters('diskName')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "nic-deployment",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "nicName": {
+            "value": "[parameters('nicName')]"
+          },
+          "subnetId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2022-09-01').outputs.subnetId.value]"
+          },
+          "environment": {
+            "value": "[parameters('environment')]"
+          },
+          "enableAcceleratedNetworking": {
+            "value": true
+          },
+          "privateIPAllocationMethod": {
+            "value": "Dynamic"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.34.44.8038",
+              "templateHash": "572110389072223101"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "nicName": {
+              "type": "string"
+            },
+            "subnetId": {
+              "type": "string"
+            },
+            "environment": {
+              "type": "string",
+              "defaultValue": "prod"
+            },
+            "enableAcceleratedNetworking": {
+              "type": "bool",
+              "defaultValue": true
+            },
+            "enableIPForwarding": {
+              "type": "bool",
+              "defaultValue": false
+            },
+            "privateIPAllocationMethod": {
+              "type": "string",
+              "defaultValue": "Dynamic"
+            },
+            "privateIPAddress": {
+              "type": "string",
+              "defaultValue": ""
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/networkInterfaces",
+              "apiVersion": "2023-11-01",
+              "name": "[parameters('nicName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "ipconfig1",
+                    "properties": {
+                      "primary": true,
+                      "subnet": {
+                        "id": "[parameters('subnetId')]"
+                      },
+                      "privateIPAllocationMethod": "[parameters('privateIPAllocationMethod')]",
+                      "privateIPAddress": "[if(not(empty(parameters('privateIPAddress'))), parameters('privateIPAddress'), null())]"
+                    }
+                  }
+                ],
+                "enableAcceleratedNetworking": "[parameters('enableAcceleratedNetworking')]",
+                "enableIPForwarding": "[parameters('enableIPForwarding')]",
+                "networkSecurityGroup": null
+              },
+              "tags": {
+                "environment": "[parameters('environment')]"
+              }
+            }
+          ],
+          "outputs": {
+            "nicId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/networkInterfaces', parameters('nicName'))]"
+            },
+            "nicName": {
+              "type": "string",
+              "value": "[parameters('nicName')]"
+            },
+            "primaryIPConfig": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', parameters('nicName')), '2023-11-01').ipConfigurations[0].properties.privateIPAddress]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'vnet-deployment')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "vm-deployment",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "vmName": {
+            "value": "[parameters('vmName')]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "nicIds": {
+            "value": [
+              "[reference(resourceId('Microsoft.Resources/deployments', 'nic-deployment'), '2022-09-01').outputs.nicId.value]"
+            ]
+          },
+          "diskId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'disk-deployment'), '2022-09-01').outputs.diskId.value]"
+          },
+          "adminUsername": {
+            "value": "[parameters('vmAdminUsername')]"
+          },
+          "computerName": {
+            "value": "[parameters('computerName')]"
+          },
+          "licenseType": {
+            "value": "Windows_Server"
+          },
+          "zones": {
+            "value": [
+              "1"
+            ]
+          },
+          "environment": {
+            "value": "[parameters('environment')]"
+          },
+          "imageExactVersion": {
+            "value": "20348.3932.250705"
+          },
+          "patchMode": {
+            "value": "AutomaticByPlatform"
+          },
+          "assessmentMode": {
+            "value": "AutomaticByPlatform"
+          },
+          "bootDiagnosticsEnabled": {
+            "value": true
+          },
+          "enableSystemAssignedIdentity": {
+            "value": true
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.34.44.8038",
+              "templateHash": "10997512578700874781"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "vmName": {
+              "type": "string"
+            },
+            "vmSize": {
+              "type": "string",
+              "defaultValue": "Standard_B2as_v2"
+            },
+            "nicIds": {
+              "type": "array"
+            },
+            "diskId": {
+              "type": "string"
+            },
+            "adminUsername": {
+              "type": "string"
+            },
+            "licenseType": {
+              "type": "string",
+              "defaultValue": "Windows_Server"
+            },
+            "zones": {
+              "type": "array",
+              "defaultValue": [
+                "1"
+              ]
+            },
+            "environment": {
+              "type": "string",
+              "defaultValue": "prod"
+            },
+            "computerName": {
+              "type": "string",
+              "defaultValue": "[parameters('vmName')]"
+            },
+            "enableAutomaticUpdates": {
+              "type": "bool",
+              "defaultValue": true
+            },
+            "patchMode": {
+              "type": "string",
+              "defaultValue": "AutomaticByPlatform"
+            },
+            "assessmentMode": {
+              "type": "string",
+              "defaultValue": "AutomaticByPlatform"
+            },
+            "enableHotpatching": {
+              "type": "bool",
+              "defaultValue": false
+            },
+            "imagePublisher": {
+              "type": "string",
+              "defaultValue": "MicrosoftWindowsServer"
+            },
+            "imageOffer": {
+              "type": "string",
+              "defaultValue": "WindowsServer"
+            },
+            "imageSku": {
+              "type": "string",
+              "defaultValue": "2022-datacenter-azure-edition"
+            },
+            "imageExactVersion": {
+              "type": "string",
+              "defaultValue": "20348.3932.250705"
+            },
+            "bootDiagnosticsEnabled": {
+              "type": "bool",
+              "defaultValue": true
+            },
+            "enableSystemAssignedIdentity": {
+              "type": "bool",
+              "defaultValue": true
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Compute/virtualMachines",
+              "apiVersion": "2023-09-01",
+              "name": "[parameters('vmName')]",
+              "location": "[parameters('location')]",
+              "zones": "[parameters('zones')]",
+              "identity": "[if(parameters('enableSystemAssignedIdentity'), createObject('type', 'SystemAssigned'), null())]",
+              "properties": {
+                "hardwareProfile": {
+                  "vmSize": "[parameters('vmSize')]"
+                },
+                "storageProfile": {
+                  "imageReference": {
+                    "publisher": "[parameters('imagePublisher')]",
+                    "offer": "[parameters('imageOffer')]",
+                    "sku": "[parameters('imageSku')]",
+                    "version": "[parameters('imageExactVersion')]"
+                  },
+                  "osDisk": {
+                    "createOption": "Attach",
+                    "managedDisk": {
+                      "id": "[parameters('diskId')]"
+                    },
+                    "caching": "ReadWrite",
+                    "deleteOption": "Delete",
+                    "osType": "Windows"
+                  },
+                  "dataDisks": [],
+                  "diskControllerType": "SCSI"
+                },
+                "osProfile": {
+                  "computerName": "[parameters('computerName')]",
+                  "adminUsername": "[parameters('adminUsername')]",
+                  "allowExtensionOperations": true,
+                  "requireGuestProvisionSignal": true,
+                  "windowsConfiguration": {
+                    "enableAutomaticUpdates": "[parameters('enableAutomaticUpdates')]",
+                    "provisionVmAgent": true,
+                    "patchSettings": {
+                      "patchMode": "[parameters('patchMode')]",
+                      "assessmentMode": "[parameters('assessmentMode')]",
+                      "enableHotpatching": "[parameters('enableHotpatching')]",
+                      "automaticByPlatformSettings": {
+                        "rebootSetting": "IfRequired",
+                        "bypassPlatformSafetyChecksOnUserSchedule": true
+                      }
+                    },
+                    "enableVmAgentPlatformUpdates": false
+                  },
+                  "secrets": []
+                },
+                "networkProfile": {
+                  "copy": [
+                    {
+                      "name": "networkInterfaces",
+                      "count": "[length(parameters('nicIds'))]",
+                      "input": {
+                        "id": "[parameters('nicIds')[copyIndex('networkInterfaces')]]",
+                        "properties": {
+                          "primary": "[equals(copyIndex('networkInterfaces'), 0)]",
+                          "deleteOption": "Delete"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "diagnosticsProfile": {
+                  "bootDiagnostics": {
+                    "enabled": "[parameters('bootDiagnosticsEnabled')]"
+                  }
+                },
+                "additionalCapabilities": {
+                  "hibernationEnabled": false
+                }
+              },
+              "tags": {
+                "environment": "[parameters('environment')]",
+                "Environment": "[parameters('environment')]"
+              }
+            }
+          ],
+          "outputs": {
+            "vmId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]"
+            },
+            "vmName": {
+              "type": "string",
+              "value": "[parameters('vmName')]"
+            },
+            "vmPrincipalId": {
+              "type": "string",
+              "value": "[if(parameters('enableSystemAssignedIdentity'), reference(resourceId('Microsoft.Compute/virtualMachines', parameters('vmName')), '2023-09-01', 'full').identity.principalId, '')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'disk-deployment')]",
+        "[resourceId('Microsoft.Resources/deployments', 'nic-deployment')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "dcr-deployment",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "dcrName": {
+            "value": "[parameters('dcrName')]"
+          },
+          "description": {
+            "value": "Data collection rule for VM Insights."
+          },
+          "workspaceResourceId": {
+            "value": "[parameters('lawWorkspaceResourceId')]"
+          },
+          "workspaceId": {
+            "value": "[parameters('lawWorkspaceId')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.34.44.8038",
+              "templateHash": "916613235893220678"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "dcrName": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "defaultValue": "Data collection rule for VM Insights."
+            },
+            "workspaceResourceId": {
+              "type": "string"
+            },
+            "workspaceId": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Insights/dataCollectionRules",
+              "apiVersion": "2022-06-01",
+              "name": "[parameters('dcrName')]",
+              "location": "[parameters('location')]",
+              "kind": "Linux",
+              "properties": {
+                "description": "[parameters('description')]",
+                "immutableId": "dcr-d1386eeba06a4e42a0efcbf6310db4c0",
+                "dataSources": {
+                  "performanceCounters": [
+                    {
+                      "name": "VMInsightsPerfCounters",
+                      "samplingFrequencyInSeconds": 60,
+                      "counterSpecifiers": [
+                        "\\VmInsights\\DetailedMetrics"
+                      ],
+                      "streams": [
+                        "Microsoft-InsightsMetrics"
+                      ]
+                    }
+                  ],
+                  "extensions": [
+                    {
+                      "name": "DependencyAgentDataSource",
+                      "extensionName": "DependencyAgent",
+                      "extensionSettings": {},
+                      "streams": [
+                        "Microsoft-ServiceMap"
+                      ]
+                    }
+                  ]
+                },
+                "destinations": {
+                  "logAnalytics": [
+                    {
+                      "name": "VMInsightsPerf-Logs-Dest",
+                      "workspaceResourceId": "[parameters('workspaceResourceId')]",
+                      "workspaceId": "[parameters('workspaceId')]"
+                    }
+                  ]
+                },
+                "dataFlows": [
+                  {
+                    "streams": [
+                      "Microsoft-InsightsMetrics"
+                    ],
+                    "destinations": [
+                      "VMInsightsPerf-Logs-Dest"
+                    ]
+                  },
+                  {
+                    "streams": [
+                      "Microsoft-ServiceMap"
+                    ],
+                    "destinations": [
+                      "VMInsightsPerf-Logs-Dest"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "outputs": {
+            "dcrId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Insights/dataCollectionRules', parameters('dcrName'))]"
+            },
+            "dcrName": {
+              "type": "string",
+              "value": "[parameters('dcrName')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "extensions-deployment",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "vmId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vm-deployment'), '2022-09-01').outputs.vmId.value]"
+          },
+          "vmName": {
+            "value": "[parameters('vmName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "dcrId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'dcr-deployment'), '2022-09-01').outputs.dcrId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.34.44.8038",
+              "templateHash": "15806464990869554808"
+            }
+          },
+          "parameters": {
+            "vmId": {
+              "type": "string"
+            },
+            "vmName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "dcrId": {
+              "type": "string",
+              "defaultValue": ""
+            },
+            "managedIdentityId": {
+              "type": "string",
+              "defaultValue": ""
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Compute/virtualMachines/extensions",
+              "apiVersion": "2023-09-01",
+              "name": "[format('{0}/AzureMonitorWindowsAgent', parameters('vmName'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "publisher": "Microsoft.Azure.Monitor",
+                "type": "AzureMonitorWindowsAgent",
+                "typeHandlerVersion": "1.2",
+                "autoUpgradeMinorVersion": true,
+                "enableAutomaticUpgrade": true,
+                "settings": {
+                  "authentication": {
+                    "managedIdentity": {
+                      "identifier-name": "mi_res_id",
+                      "identifier-value": "[format('/subscriptions/{0}/resourceGroups//providers/Microsoft.ManagedIdentity/userAssignedIdentities/', subscription().subscriptionId)]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Compute/virtualMachines/extensions",
+              "apiVersion": "2023-09-01",
+              "name": "[format('{0}/AzurePolicyforWindows', parameters('vmName'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "publisher": "Microsoft.GuestConfiguration",
+                "type": "ConfigurationforWindows",
+                "typeHandlerVersion": "1.1",
+                "autoUpgradeMinorVersion": true,
+                "enableAutomaticUpgrade": true,
+                "settings": {}
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', split(format('{0}/AzureMonitorWindowsAgent', parameters('vmName')), '/')[0], split(format('{0}/AzureMonitorWindowsAgent', parameters('vmName')), '/')[1])]"
+              ]
+            },
+            {
+              "type": "Microsoft.Compute/virtualMachines/extensions",
+              "apiVersion": "2023-09-01",
+              "name": "[format('{0}/MDE.Windows', parameters('vmName'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "publisher": "Microsoft.Azure.AzureDefenderForServers",
+                "type": "MDE.Windows",
+                "typeHandlerVersion": "1.0",
+                "autoUpgradeMinorVersion": true,
+                "enableAutomaticUpgrade": false,
+                "forceUpdateTag": "034017a3-c49f-453a-b641-b4aacc1a9248",
+                "settings": {
+                  "autoUpdate": true,
+                  "azureResourceId": "[parameters('vmId')]",
+                  "forceReOnboarding": false,
+                  "vNextEnabled": true
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines/extensions', split(format('{0}/AzurePolicyforWindows', parameters('vmName')), '/')[0], split(format('{0}/AzurePolicyforWindows', parameters('vmName')), '/')[1])]"
+              ]
+            }
+          ],
+          "outputs": {
+            "monitorExtensionId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Compute/virtualMachines/extensions', split(format('{0}/AzureMonitorWindowsAgent', parameters('vmName')), '/')[0], split(format('{0}/AzureMonitorWindowsAgent', parameters('vmName')), '/')[1])]"
+            },
+            "policyExtensionId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Compute/virtualMachines/extensions', split(format('{0}/AzurePolicyforWindows', parameters('vmName')), '/')[0], split(format('{0}/AzurePolicyforWindows', parameters('vmName')), '/')[1])]"
+            },
+            "defenderExtensionId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Compute/virtualMachines/extensions', split(format('{0}/MDE.Windows', parameters('vmName')), '/')[0], split(format('{0}/MDE.Windows', parameters('vmName')), '/')[1])]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'dcr-deployment')]",
+        "[resourceId('Microsoft.Resources/deployments', 'vm-deployment')]"
+      ]
+    }
+  ],
+  "outputs": {
+    "vmId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vm-deployment'), '2022-09-01').outputs.vmId.value]"
+    },
+    "vmName": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vm-deployment'), '2022-09-01').outputs.vmName.value]"
+    },
+    "vnetId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2022-09-01').outputs.vnetId.value]"
+    },
+    "subnetId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vnet-deployment'), '2022-09-01').outputs.subnetId.value]"
+    },
+    "nicId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'nic-deployment'), '2022-09-01').outputs.nicId.value]"
+    },
+    "diskId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'disk-deployment'), '2022-09-01').outputs.diskId.value]"
+    },
+    "dcrId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'dcr-deployment'), '2022-09-01').outputs.dcrId.value]"
+    },
+    "nsgId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'nsg-deployment'), '2022-09-01').outputs.nsgId.value]"
+    },
+    "routeTableId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'routetable-deployment'), '2022-09-01').outputs.routeTableId.value]"
+    }
+  }
+}
